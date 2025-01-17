@@ -1,0 +1,42 @@
+services:
+    challenge-api:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - '3000:3000'
+        image: challenge-api:latest
+        container_name: challenge-api
+        environment:
+            - NODE_ENV=development
+            - MONGODB_URI=mongodb://mongodb:27017/products
+            - CONTENTFUL_SPACE_ID=9xs1613l9f7v
+            - CONTENTFUL_ACCESS_TOKEN=I-ThsT55eE_B3sCUWEQyDT4VqVO3x__20ufuie9usns
+            - CONTENTFUL_ENVIRONMENT=master
+            - CONTENTFUL_CONTENT_TYPE=product
+            - JWT_SECRET=8e650e15-1238-4e87-9c1f-e911a824393e
+        depends_on:
+            mongodb:
+                condition: service_healthy
+
+    mongodb:
+        image: mongo:latest
+        container_name: mongodb
+        ports:
+            - '27017:27017'
+        volumes:
+            - mongodb_data:/data/db
+        healthcheck:
+            test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+            interval: 60s
+            timeout: 10s
+            retries: 5
+        command: >
+            sh -c "
+            apt-get update &&
+            apt-get install -y mongodb-mongosh &&
+            mongod --bind_ip_all --quiet
+            "
+
+volumes:
+    mongodb_data:
