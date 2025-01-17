@@ -1,16 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { ProductsService } from 'src/products/products.service';
+import { ProductsService } from '../products/products.service';
 
 @Injectable()
 export class TasksService {
-    constructor(private readonly products: ProductsService) {
-        // empty
-    }
+    constructor(private readonly products: ProductsService) {}
+
     @Cron(CronExpression.EVERY_HOUR)
     async hourlyExecution() {
-        const response: IProducts = await this.products.getProducts();
+        try {
+            const savedQuantity = await this.products.getAndSaveProducts();
 
-        console.log(response.items[0]);
+            console.log(`${savedQuantity} products were upserted`);
+        } catch (error) {
+            console.error('TasksService.hourlyExecution: ', error);
+        }
     }
 }
